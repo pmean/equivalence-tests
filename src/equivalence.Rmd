@@ -9,9 +9,9 @@ output: html_document
 
 Set up two hypotheses:
 
-$H_{0a} \; \mu \geq -\Delta$
+$H_{0a} \; \mu \geq -\Delta \; versus \; H_{1a} \; \mu \lt -\Delta$
 
-$H_{0b} \; \mu \leq \Delta$
+$H_{0b} \; \mu \leq \Delta \; versus \; H_{1b} \; \mu \gt \Delta$
 
 where $\Delta$ is the minimum clinically important difference.
 
@@ -48,15 +48,16 @@ xbar2 <- 136.25
 s2 <- 13.27
 dbar <- xbar1-xbar2
 sd <- (4.56-(-7.22))/4
+n <- 20
 delta <- 2
 t_pctl <- round(qt(0.95, 19), 2)
-crit_a <- -delta + t_pctl * sd / sqrt(20)
-crit_b <-  delta - t_pctl * sd / sqrt(20)
+crit_a <- -delta + t_pctl * sd / sqrt(n)
+crit_b <-  delta - t_pctl * sd / sqrt(n)
 ```
 
 In a study of two imaging systems (LCR and MRI), distances and angles were measured using several key dental landmarks. The MRI is less hazardous, so if you can demonstrate that it produces similar measures to LCR, you would definitely adopt MRI.
 
-The mean interincisal angle as measured by LCR had a mean of `r xbar1` $\pm$ `r s1` while MRI had a mean of `r xbar2` $\pm$ `r s2`. The data are paired, so the mean difference is `r dbar` $\pm$ `r sd`. The minimum clinically important difference is $\pm$ 2. The appropriate t percentile is `r t_pctl`.
+The mean interincisal angle as measured by LCR had a mean of `r xbar1` $\pm$ `r s1` while MRI had a mean of `r xbar2` $\pm$ `r s2`. The data are paired, so the mean difference is `r dbar` $\pm$ `r sd`. The minimum clinically important difference is $\pm$ 2. The sample size is 20 and $t_{0.05, 19}$  is `r t_pctl`.
 
 You would reject $H_{0a}$ if 
 
@@ -68,3 +69,80 @@ $\bar{X} \leq 2 - 1.73 \frac{2.945}{\sqrt{20}}=0.86$
 
 Since $\bar{X}=-1.33$, you should accept $H_{0a}$ and reject $H_{0b}$, which means that you have failed to demonstrate equivalence.
 
+```{r p-value, echo=FALSE}
+t_stat1 <- (dbar - (-2)) / (sd/sqrt(n))
+p_value1 <- round(1 - pt(t_stat1, n-1), 2)
+t_stat2 <- (dbar -   2 ) / (sd/sqrt(n))
+p_value2 <- round(pt(t_stat2, n-1), 4)
+```
+
+## What p-value do you report?
+
+With two hypotheses, you have two p-values. Which one do you report?
+
+Traditionally, you report the larger of the two p-values. If the larger of the two p-values is less than 0.05, then both are less than 0.05 and you can claim equivalence. If the larger of the two p-values is greater than 0.05, you have accepted at least one of the two hypotheses and cannot claim equivalence.
+
+In the current example, the two p-values are `r p_value1` and `r p_value2`, so you should report `r max(p_value1, p_value2)`.
+
+## Confidence interval approach
+
+It is fairly easy to show that 
+
+$\bar{X} \geq -\Delta + t_\alpha \frac{S}{\sqrt{n}}$
+
+and 
+
+$\bar{X} \leq \Delta - t_\alpha \frac{S}{\sqrt{n}}$
+
+if and only if
+
+$-\Delta \leq \bar{X} \pm t_\alpha \frac{S}{\sqrt{n}} \leq \Delta$
+
+In other words, claim equivalence if the 1-2$\alpha$ confidence interval lies entirely inside the range of clinical indifference. Note that this means that you only need to show that the 90% confidence interval lies inside the range of clinical indifference if you want to test equivalence with a Type I error rate of 0.05.
+
+```{r confidence-interval, echo=FALSE}
+lower <- round(dbar - t_pctl * sd / sqrt(n), 2)
+upper <- round(dbar + t_pctl * sd / sqrt(n), 2)
+```
+
+## Example
+
+The 90% confidence interval is
+
+$-1.33 \pm 1.73 \frac{2.945}{\sqrt{20}}$
+
+or `r lower` to `r upper`. Since this confidence interval does not lie entirely inside the range -2 to 2, you cannot claim equivalence.
+
+## Power calculations
+
+The power calculations are, in theory, no harder for an equivalence test, but you do have to come up with an extra number.
+
+$Power_1 = P[\bar{X} \geq -\Delta + t_\alpha \frac{S}{\sqrt{n}}]$
+
+$Power_2 = P[\bar{X} \leq \Delta - t_\alpha \frac{S}{\sqrt{n}}]$
+
+where you compute the two powers under the assumption that $\mu=\mu_a$.
+
+The value for $\mu_a$ can't be at the minimum clinically important difference, because that is already taken by the null hypotheses.
+
+You have to take $\mu_a$ somewhere inside the range of clinical indifference. There is a temptation to choose $\mu_a=0$, but that is dangerously optimistic.
+
+```{r power, echo=FALSE}
+mu_a <- -1.5
+new_crit <- -delta + 1.645 * sd / sqrt(300)
+std_crit <- (new_crit-mu_a)/ (sd / sqrt(300))
+power_1 <- 1 - dnorm(std_crit)
+```
+
+## Example
+
+Suppose we want to replicate the study example shown earlier, but with a sample size of 300. The mean that we observed, -1.33, is about what you'd expect, but to be safe, you will calculate power at $\mu_a=-1.5$. Using a bit of common sense, you only need to calculate power for $H_{0a}$ because the power for $H_{0b}$ will be significantly larger.
+
+$P[\bar{X} \geq -2 + 1.645\frac{2.945}{\sqrt{300}}=-1.72]$
+
+$P[\frac{\bar{X}-(-1.5)}{\frac{2.945}{\sqrt{300}}} \geq \frac{-1.72-(-1.5)}{\frac{2.945}{\sqrt{300}}}]$
+
+$P[Z \geq -1.72] = 0.83$
+
+
+## More to come!
