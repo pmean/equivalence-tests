@@ -1,0 +1,70 @@
+---
+title: "Equivalence-test-examples"
+author: "Steve Simon"
+date: "April 11, 2018"
+output: html_document
+---
+
+## Equivalence testing framework
+
+Set up two hypotheses:
+
+$H_{0a} \; \mu \geq -\Delta$
+
+$H_{0b} \; \mu \leq \Delta$
+
+where $\Delta$ is the minimum clinically important difference.
+
+If you reject both hypotheses, then you have proven that $\mu$ is between $-\Delta$ and $\Delta$.
+
+## Decision rule for the first hypothesis
+
+For the first hypothesis, 
+
+$H_{0a} \; \mu \geq -\Delta$
+
+you would reject $H_{0a}$ if
+
+$\bar{X} \geq -\Delta + t_\alpha \frac{S}{\sqrt{n}}$
+
+where $t_\alpha$ is the upper $\alpha$ percentile of the t distribution with the appropriate degrees of freedom.
+
+## Decision rule for the second hypothesis
+
+For the second hypothesis, 
+
+$H_{0b} \; \mu \leq \Delta$
+
+you would reject $H_{0b}$ if
+
+$\bar{X} \leq \Delta - t_\alpha \frac{S}{\sqrt{n}}$
+
+## Example
+
+```{r dental-example, echo=FALSE}
+xbar1 <- 134.92
+s1 <- 13.98
+xbar2 <- 136.25
+s2 <- 13.27
+dbar <- xbar1-xbar2
+sd <- (4.56-(-7.22))/4
+delta <- 2
+t_pctl <- round(qt(0.95, 19), 2)
+crit_a <- -delta + t_pctl * sd / sqrt(20)
+crit_b <-  delta - t_pctl * sd / sqrt(20)
+```
+
+In a study of two imaging systems (LCR and MRI), distances and angles were measured using several key dental landmarks. The MRI is less hazardous, so if you can demonstrate that it produces similar measures to LCR, you would definitely adopt MRI.
+
+The mean interincisal angle as measured by LCR had a mean of `r xbar1` $\pm$ `r s1` while MRI had a mean of `r xbar2` $\pm$ `r s2`. The data are paired, so the mean difference is `r dbar` $\pm$ `r sd`. The minimum clinically important difference is $\pm$ 2. The appropriate t percentile is `r t_pctl`.
+
+You would reject $H_{0a}$ if 
+
+$\bar{X} \geq -2 + 1.73 \frac{2.945}{\sqrt{20}}=-0.86$
+
+You would reject $H_{0b}$ if
+
+$\bar{X} \leq 2 - 1.73 \frac{2.945}{\sqrt{20}}=0.86$
+
+Since $\bar{X}=-1.33$, you should accept $H_{0a}$ and reject $H_{0b}$, which means that you have failed to demonstrate equivalence.
+
