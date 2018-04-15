@@ -5,13 +5,180 @@ date: "April 11, 2018"
 output: html_document
 ---
 
+## Graphical display of equivalence hypotheses
+
+```{r create-math, echo=FALSE}
+h0a <- expression(paste(
+  H["0a"], "  ", mu <= -Delta))
+
+h1a <- expression(paste(
+  H["1a"], "  ", mu > -Delta))
+
+h0b <- expression(paste(
+  H["0b"], "  ", mu >= Delta)
+)
+
+h1b <- expression(paste(
+  H["1b"], "  ", mu <  Delta))
+
+border_a <- expression(paste(
+  -Delta + t[alpha], frac(s, sqrt(n)))
+)
+
+border_b <- expression(paste(
+  Delta - t[alpha], frac(s, sqrt(n))
+  )
+)
+
+accept_a <- expression(paste(
+  "Accept", "  ", H["0a"]))
+
+reject_a <- expression(paste(
+  "Reject", "  ", H["0a"]))
+
+accept_b <- expression(paste(
+  "Accept", "  ", H["0b"]))
+
+reject_b <- expression(paste(
+  "Reject", "  ", H["0b"]))
+
+crit_a <- expression(paste(
+  -2+1.73, frac(2.945, sqrt(20))," = -0.86"))
+
+crit_b <- expression(paste(
+  2-1.73, frac(2.945, sqrt(20)), " = 0.86"))
+
+decision_a <- expression(paste(
+  bar(X), " = -1.33, Accept ", H["0a"]))
+
+decision_b <- expression(
+  paste(bar(X), " = -1.33, Reject ", H["0b"]))
+```
+
+```{r plot-functions, echo=FALSE}
+graph_axis <- function() {
+  par(mar=rep(0.1, 4))
+  plot(
+    c(-0.1, 1),
+    c(-2.7, 2.7),
+    axes=FALSE,
+    type="n")
+
+  arrows(0, -2.5, 0, 2.5, length=0.05, code=3)
+}
+
+graph_tick <- function(y) {
+  segments(-0.01, y, 0.01, y)
+}
+
+graph_neg_delta <- function(v=expression(-Delta)) {
+  graph_tick(-2)
+  text(-0.05, -2, v)
+}
+  
+graph_pos_delta <- function(v=expression(Delta)) {
+  graph_tick(2)
+  text(-0.05, 2, v)
+}
+
+graph_border <- function(y) {
+  segments(0.02, y, 0.48, y, lty="dotted")
+  graph_tick(y)
+}
+
+graph_shade <- function(y1, y2, co) {
+  polygon(
+    c(0, 0.5, 0.5, 0),
+    c(y1, y1, y2, y2),
+    border=NA, col=co)
+}
+```
+
+```{r plot-hyp, fig.width=4.5, fig.height=2, echo=FALSE}
+# Framework
+graph_axis()
+graph_neg_delta()
+graph_border(-2)
+graph_pos_delta()
+graph_border(2)
+text(0.25, -2.7, "inferior")
+text(0.25,  2.7, "superior")
+text(0.25,  0.0, "equivalent")
+
+# H0a
+graph_axis()
+graph_neg_delta()
+graph_border(-2)
+text(0.25, -2-0.5, h0a)
+text(0.25, -2+0.5, h1a)
+
+# H0b
+graph_axis()
+graph_pos_delta()
+graph_border(2)
+text(0.25, 2+0.5, h0b)
+text(0.25, 2-0.5, h1b)
+
+# Rejection region for H0a
+graph_axis()
+graph_shade(-2.3, -0.86, "lightgreen")
+graph_shade(-0.86, 2.3, "pink")
+graph_neg_delta()
+graph_border(-0.86)
+text(0.55,   -0.86, border_a, adj=0)
+text(0.25,   -0.86-0.5, accept_a)
+text(0.25,   -0.86+0.5, reject_a)
+
+# Rejection region for H0b
+graph_axis()
+graph_shade(-2.3, 0.86, "pink")
+graph_shade(0.86, 2.3, "lightgreen")
+graph_pos_delta()
+graph_border(0.86)
+text(0.55,   0.86, border_b, adj=0)
+text(0.25,   0.86+0.5, accept_b)
+text(0.25,   0.86-0.5, reject_b)
+
+# Numeric results, a
+graph_axis()
+graph_shade(-2.3, -0.86, "lightgreen")
+graph_shade(-0.86, 2.3, "pink")
+graph_neg_delta(v=-2)
+graph_border(-0.86)
+text(0.55,   -0.86, crit_a, adj=0)
+graph_tick(-1.33)
+text(0.25, -1.33, decision_a)
+
+# Numeric results, b
+graph_axis()
+graph_shade(-2.3, 0.86, "pink")
+graph_shade(0.86, 2.3, "lightgreen")
+graph_pos_delta(v=2)
+graph_border(0.86)
+text(0.55,   0.86, crit_b, adj=0)
+graph_tick(-1.33)
+text(0.25, -1.33, decision_b)
+
+# Confidence interval
+graph_axis()
+graph_pos_delta(v=2)
+graph_neg_delta(v=-2)
+graph_border(-2)
+graph_border(2)
+segments(0.25, -2.47, 0.25, -0.19)
+segments(0.24, -2.47, 0.26, -2.47)
+segments(0.24, -0.19, 0.26, -0.19)
+text(0.28, -2.47, -2.47, adj=0)
+text(0.28, -0.19, -0.19, adj=0)
+```
+
 ## Equivalence testing framework
 
 Set up two hypotheses:
 
-$H_{0a} \; \mu \geq -\Delta \; versus \; H_{1a} \; \mu \lt -\Delta$
+$H_{0a} \; \mu \leq -\Delta \; versus \; H_{1a} \; \mu \gt -\Delta$
 
-$H_{0b} \; \mu \leq \Delta \; versus \; H_{1b} \; \mu \gt \Delta$
+$H_{0b} \; \mu \geq \Delta \; versus \; H_{1b} \; \mu \lt \Delta$
 
 where $\Delta$ is the minimum clinically important difference.
 
@@ -86,19 +253,25 @@ In the current example, the two p-values are `r p_value1` and `r p_value2`, so y
 
 ## Confidence interval approach
 
-It is fairly easy to show that 
+You can rewrite the two conditions for equivalence as follows. 
 
 $\bar{X} \geq -\Delta + t_\alpha \frac{S}{\sqrt{n}}$
+
+is equivalent to 
+
+$\bar{X} - t_\alpha \frac{S}{\sqrt{n}} \geq -\Delta$
 
 and 
 
 $\bar{X} \leq \Delta - t_\alpha \frac{S}{\sqrt{n}}$
 
-if and only if
+is equivalent to 
 
-$-\Delta \leq \bar{X} \pm t_\alpha \frac{S}{\sqrt{n}} \leq \Delta$
+$\bar{X} + t_\alpha \frac{S}{\sqrt{n}} \leq \Delta$
 
-In other words, claim equivalence if the 1-2$\alpha$ confidence interval lies entirely inside the range of clinical indifference. Note that this means that you only need to show that the 90% confidence interval lies inside the range of clinical indifference if you want to test equivalence with a Type I error rate of 0.05.
+The terms on the left represent the lower and upper limits of a $1-2 \alpha$ confidence interval.
+
+So you can claim equivalence if the 1-2$\alpha$ confidence interval lies entirely inside the range of clinical indifference. Note that this means that you use a 90% confidence interval if you want to test equivalence with a Type I error rate of 0.05.
 
 ```{r confidence-interval, echo=FALSE}
 lower <- round(dbar - t_pctl * sd / sqrt(n), 2)
@@ -138,11 +311,64 @@ power_1 <- 1 - dnorm(std_crit)
 
 Suppose we want to replicate the study example shown earlier, but with a sample size of 300. The mean that we observed, -1.33, is about what you'd expect, but to be safe, you will calculate power at $\mu_a=-1.5$. Using a bit of common sense, you only need to calculate power for $H_{0a}$ because the power for $H_{0b}$ will be significantly larger.
 
-$P[\bar{X} \geq -2 + 1.645\frac{2.945}{\sqrt{300}}=-1.72]$
+$P[\bar{X} \geq -2 + 1.645\frac{2.945}{\sqrt{300}}]$
 
-$P[\frac{\bar{X}-(-1.5)}{\frac{2.945}{\sqrt{300}}} \geq \frac{-1.72-(-1.5)}{\frac{2.945}{\sqrt{300}}}]$
+$P[\bar{X} \geq -1.72]$
 
-$P[Z \geq -1.72] = 0.83$
+$P\left[\frac{\bar{X}-(-1.5)}{2.945 / \sqrt{300}} \geq \frac{-1.72-(-1.5)}{2.945 / \sqrt{300}}\right]$
+
+$P[Z \geq -1.30] = 0.83$
+
+## Equivalence testing for two independent means
+
+The framework for equivalence testing is similar when you are comparing two independent means.
+
+$H_{0a} \; \mu_1-\mu_2 \leq -\Delta$
+
+$H_{0b} \; \mu_1-\mu_2 \geq \Delta$
+
+Reject $H_{0a}$ if
+
+$\bar{X}_1-\bar{X}_2 \geq -\Delta + t_\alpha S_p \sqrt{\frac{1}{n_1}+\frac{1}{n_2}}$
+
+Reject $H_{0b}$ if
+
+$\bar{X}_1-\bar{X}_2 \leq \Delta - t_\alpha S_p \sqrt{\frac{1}{n_1}+\frac{1}{n_2}}$
+
+Or you can conclude equivalence if
+
+$-\Delta \leq \bar{X}_1 - \bar{X}_2 \pm t_\alpha S_p \sqrt{\frac{1}{n_1}+\frac{1}{n_2}} \leq \Delta$
+
+
+## Equivalence testing for two independent proportions
+
+The framework for equivalence testing is also similar when you are comparing two independent proportions.
+
+$H_{0a} \; \pi_1-\pi_2 \leq -\Delta$
+
+$H_{0b} \; \pi_1-\pi_2 \geq \Delta$
+
+Reject $H_{0a}$ if
+
+$\hat{p}_1-\hat{p}_2 \geq -\Delta + Z_\alpha \sqrt{\hat{p}_c (1-\hat{p}_c) \left(\frac{1}{n_1}+\frac{1}{n_2}\right)}$
+
+Reject $H_{0b}$ if
+
+$\hat{p}_1-\hat{p}_2 \leq \Delta - Z_\alpha \sqrt{\hat{p}_c (1-\hat{p}_c) \left(\frac{1}{n_1} + \frac{1}{n_2}\right)}$
+
+Or you can conclude equivalence if
+
+$-\Delta \leq \hat{p}_1-\hat{p}_2 \pm Z_\alpha \sqrt{\hat{p}_c (1-\hat{p}_c) \left(\frac{1}{n_1} + \frac{1}{n_2}\right)} \leq \Delta$
+
+## Non-inferiority
+
+Here are some hypotheses of non-inferiority.
+
+$H_0 \; \mu \leq -\Delta \; versus \; H_1 \; \mu \gt -\Delta$
+
+$H_0 \; \mu_1 - \mu_2 \leq -\Delta \; versus \; H_1 \; \mu_1 - \mu_2 \gt -\Delta$
+
+$H_0 \; \pi_1 - \pi_2 \leq -\Delta \; versus \; H_1 \; \pi_1 - \pi_2 \gt -\Delta$
 
 
 ## More to come!
